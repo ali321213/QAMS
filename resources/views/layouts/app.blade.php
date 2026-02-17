@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,10 +10,14 @@
     <link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600,700" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        body { font-family: 'DM Sans', sans-serif; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+        }
     </style>
 </head>
+
 <body class="bg-slate-50 min-h-screen">
     @yield('content')
 </body>
+
 </html>
