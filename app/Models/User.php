@@ -8,10 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable
 {
     use HasFactory;
-
-    /**
-     * The table associated with the model.
-     */
+    
+    // The table associated with the model.
     protected $table = 'users';
 
     /**
