@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -46,25 +45,19 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Get the name of the unique identifier for the user.
-     */
+    // Get the name of the unique identifier for the user.
     public function username(): string
     {
         return 'user_name';
     }
 
-    /**
-     * Check if user account is active (not blocked).
-     */
+    // Check if user account is active (not blocked).
     public function isActive(): bool
     {
         return $this->active === '1';
     }
 
-    /**
-     * Check if user is admin.
-     */
+    // Check if user is admin.
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
