@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('user_name', 30)->unique();
             $table->string('password', 255);
             $table->string('role', 15);
-            $table->string('active', 5)->default('1'); // 1 = active, 0 = blocked
+            $table->string('active', 5)->default('1'); // 1 = active, 0 = unactive
             $table->timestamps();
         });
 
