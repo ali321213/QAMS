@@ -1,7 +1,5 @@
 @extends('layouts.app')
-
 @section('title', 'Dashboard')
-
 @section('content')
 <div class="min-h-screen">
     <nav class="bg-white border-b border-slate-200 px-6 py-4">
@@ -20,7 +18,7 @@
         <div class="bg-white rounded-xl shadow border border-slate-200 p-8">
             <h2 class="text-2xl font-bold text-slate-800">Welcome, {{ $user->name }}</h2>
             <p class="text-slate-600 mt-2">You are logged in as {{ ucfirst($user->role) }}.</p>
-            <p class="text-slate-500 text-sm mt-6">Separate dashboards for Students and Teachers are not required in this test phase.</p>
+            <p class="text-slate-500 text-sm mt-6">TESTING</p>
         </div>
     </main>
 </div>

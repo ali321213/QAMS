@@ -9,13 +9,11 @@ use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
-    // Show the registration form.
     public function showRegistrationForm()
     {
         return view('auth.register');
     }
 
-    // Handle registration request.
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -36,16 +34,13 @@ class AuthController extends Controller
         return redirect()->route('login')->with('success', 'Registration successful. You can now login.');
     }
 
-    // Show the login form.
     public function showLoginForm()
     {
         return view('auth.login');
     }
 
-    // Handle login request.
     public function login(Request $request)
     {
-        dd("reached here");
         $credentials = $request->validate([
             'user_name' => ['required', 'string'],
             'password' => ['required'],
@@ -71,7 +66,6 @@ class AuthController extends Controller
         return redirect()->intended(route('dashboard'));
     }
 
-    // Handle logout request.
     public function logout(Request $request)
     {
         Auth::logout();

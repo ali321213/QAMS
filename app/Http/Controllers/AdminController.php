@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
-    // Display the admin dashboard with all users.
     public function index(Request $request)
     {
         $query = User::query()->orderBy('role')->orderBy('name');
