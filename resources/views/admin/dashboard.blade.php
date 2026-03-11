@@ -3,20 +3,34 @@
 @section('title', 'Admin Dashboard')
 
 @section('content')
-<div class="min-h-screen">
-    <nav class="bg-white border-b border-slate-200 px-6 py-4">
-        <div class="flex justify-between items-center max-w-7xl mx-auto">
-            <h1 class="text-xl font-bold text-slate-800">QAMS - Admin Dashboard</h1>
+<div class="min-h-screen bg-slate-50">
+    <nav class="bg-white/80 border-b border-slate-200 backdrop-blur">
+        <div class="flex justify-between items-center max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white text-xs font-semibold">
+                    AD
+                </span>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold text-slate-900">Admin dashboard</h1>
+                    <p class="text-xs text-slate-500 hidden sm:block">Manage users, roles, and access control</p>
+                </div>
+            </div>
             <div class="flex items-center gap-4">
-                <span class="text-slate-600">{{ auth()->user()->name }} (Admin)</span>
+                <div class="hidden sm:flex flex-col items-end">
+                    <span class="text-sm font-medium text-slate-800">{{ auth()->user()->name }}</span>
+                    <span class="text-xs text-slate-500">Administrator</span>
+                </div>
                 <form method="POST" action="{{ route('logout') }}" class="inline">
                     @csrf
-                    <button type="submit" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Logout</button>
+                    <button type="submit"
+                            class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
+                        Logout
+                    </button>
                 </form>
             </div>
         </div>
     </nav>
-    <main class="max-w-7xl mx-auto px-6 py-8">
+    <main class="max-w-7xl mx-auto px-6 py-8 space-y-6">
         @if (session('success'))
             <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
                 {{ session('success') }}
@@ -28,17 +42,17 @@
             </div>
         @endif
 
-        <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-6 border-b border-slate-200">
-                <h2 class="text-lg font-semibold text-slate-800">User Management</h2>
-                <p class="text-sm text-slate-600 mt-1">View, edit, and manage all users (Admin, Students, Teachers)</p>
+                <h2 class="text-base font-semibold text-slate-900">User management</h2>
+                <p class="text-xs text-slate-500 mt-1">Search, edit, and block/unblock admin, teacher, and student accounts.</p>
 
                 <form method="GET" action="{{ route('admin.dashboard') }}" class="mt-4">
-                    <div class="flex gap-2">
+                    <div class="flex flex-col sm:flex-row gap-2">
                         <input type="text" name="search" value="{{ request('search') }}"
-                            placeholder="Search student by name..."
-                            class="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+                            placeholder="Search by name or username..."
+                            class="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 font-medium">
                             Search
                         </button>
                         @if (request('search'))

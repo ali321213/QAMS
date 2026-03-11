@@ -16,8 +16,10 @@
     </style>
 </head>
 
-<body class="bg-slate-50 min-h-screen">
-    @yield('content')
+<body class="bg-slate-50 min-h-screen antialiased">
+    <div class="min-h-screen bg-gradient-to-b from-slate-50 via-slate-50 to-slate-100">
+        @yield('content')
+    </div>
 </body>
 
 </html>

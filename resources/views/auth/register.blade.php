@@ -3,13 +3,19 @@
 @section('title', 'Register')
 
 @section('content')
-<div class="min-h-screen flex items-center justify-center px-4 py-12">
+<div class="min-h-screen flex items-center justify-center px-4 py-10">
     <div class="w-full max-w-md">
-        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-8">
-            <div class="text-center mb-8">
-                <h1 class="text-2xl font-bold text-slate-800">QAMS</h1>
-                <p class="text-slate-600 mt-1">Quiz and Assignment Management System</p>
-                <h2 class="text-lg font-semibold text-slate-700 mt-6">Registration</h2>
+        <div class="mb-6 text-center">
+            <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white text-lg font-bold shadow-sm">
+                Q
+            </span>
+            <h1 class="mt-3 text-2xl font-bold text-slate-900 tracking-tight">QAMS</h1>
+            <p class="text-sm text-slate-500">Quiz & Assignment Management System</p>
+        </div>
+        <div class="bg-white/90 backdrop-blur rounded-2xl shadow-lg border border-slate-200 px-6 py-7">
+            <div class="text-left mb-6">
+                <h2 class="text-lg font-semibold text-slate-900">Create an account</h2>
+                <p class="mt-1 text-xs text-slate-500">Choose your role (Student, Teacher, or Admin) to access the right dashboard.</p>
             </div>
 
             @if ($errors->any())
@@ -55,12 +61,13 @@
                         <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                     </select>
                 </div>
-                <button type="submit" class="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                    Register
+                <button type="submit" class="w-full inline-flex justify-center items-center gap-2 py-3 px-4 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm">
+                    <span>Sign up</span>
                 </button>
             </form>
-            <p class="mt-6 text-center text-sm text-slate-600">
-                Already have an account? <a href="{{ route('login') }}" class="font-medium text-blue-600 hover:text-blue-500">Login</a>
+            <p class="mt-6 text-center text-xs text-slate-500">
+                Already have an account?
+                <a href="{{ route('login') }}" class="font-medium text-blue-600 hover:text-blue-500">Sign in</a>
             </p>
         </div>
     </div>

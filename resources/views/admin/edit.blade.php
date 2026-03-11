@@ -3,16 +3,27 @@
 @section('title', 'Edit User')
 
 @section('content')
-<div class="min-h-screen">
-    <nav class="bg-white border-b border-slate-200 px-6 py-4">
-        <div class="flex justify-between items-center max-w-7xl mx-auto">
-            <h1 class="text-xl font-bold text-slate-800">QAMS - Admin Dashboard</h1>
-            <a href="{{ route('admin.dashboard') }}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Back to Dashboard</a>
+<div class="min-h-screen bg-slate-50">
+    <nav class="bg-white/80 border-b border-slate-200 backdrop-blur">
+        <div class="flex justify-between items-center max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white text-xs font-semibold">
+                    AD
+                </span>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900">Edit user</h1>
+                    <p class="text-xs text-slate-500">Update account details and role</p>
+                </div>
+            </div>
+            <a href="{{ route('admin.dashboard') }}" class="text-xs md:text-sm text-blue-600 hover:text-blue-700 font-medium">
+                ← Back to dashboard
+            </a>
         </div>
     </nav>
     <main class="max-w-2xl mx-auto px-6 py-8">
-        <div class="bg-white rounded-xl shadow border border-slate-200 p-8">
-            <h2 class="text-lg font-semibold text-slate-800 mb-6">Edit User: {{ $user->name }}</h2>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+            <h2 class="text-base font-semibold text-slate-900 mb-1">User: {{ $user->name }}</h2>
+            <p class="text-xs text-slate-500 mb-6">Username {{ $user->user_name }} • Current role {{ ucfirst($user->role) }}</p>
 
             @if ($errors->any())
                 <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
