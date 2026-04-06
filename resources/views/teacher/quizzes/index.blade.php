@@ -1,98 +1,66 @@
 @extends('layouts.app')
 
-@section('title', 'My Quizzes')
+@section('title', 'Quizzes')
 
 @section('content')
 <div class="min-h-screen bg-slate-50">
-    <nav class="bg-white/80 border-b border-slate-200 backdrop-blur">
-        <div class="flex justify-between items-center max-w-7xl mx-auto px-6 py-4">
-            <div>
-                <h1 class="text-lg md:text-xl font-bold text-slate-900">My quizzes</h1>
-                <p class="text-xs text-slate-500 hidden sm:block">Create, publish, and review quiz performance.</p>
-            </div>
-            <div class="flex items-center gap-4">
-                <a href="{{ route('teacher.dashboard') }}" class="text-xs md:text-sm text-slate-600 hover:text-slate-800">Dashboard</a>
-                <form method="POST" action="{{ route('logout') }}" class="inline">
-                    @csrf
-                    <button type="submit" class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
-                        Logout
-                    </button>
+    <div class="bg-white/80 border-b border-slate-200 backdrop-blur">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-lg font-bold text-slate-900">Quizzes</h1>
+            <div class="flex gap-3">
+                @if ($subjects->isNotEmpty())
+                    <a href="{{ route('teacher.quizzes.create') }}" class="text-sm font-medium text-blue-600">Create quiz</a>
+                @endif
+                <form method="POST" action="{{ route('logout') }}" class="inline">@csrf
+                    <button type="submit" class="text-sm text-slate-600">Logout</button>
                 </form>
             </div>
         </div>
-    </nav>
-    <main class="max-w-7xl mx-auto px-6 py-8 space-y-6">
+    </div>
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        @include('teacher.partials.nav')
         @if (session('success'))
-            <div class="p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
-                {{ session('success') }}
-            </div>
+            <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">{{ session('success') }}</div>
         @endif
-        <div class="flex justify-between items-center">
-            <h2 class="text-sm font-semibold text-slate-900">All quizzes</h2>
-            <a href="{{ route('teacher.quizzes.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-xs md:text-sm font-medium hover:bg-blue-700 shadow-sm">
-                <span class="text-base leading-none">+</span>
-                <span>Create new quiz</span>
-            </a>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <table class="w-full">
-                <thead class="bg-slate-50 border-b border-slate-200">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Title</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Subject</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Start</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">End</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Status</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200">
-                    @forelse ($quizzes as $quiz)
-                        <tr class="hover:bg-slate-50">
-                            <td class="px-6 py-4 text-sm text-slate-800">{{ $quiz->title }}</td>
-                            <td class="px-6 py-4 text-sm text-slate-600">
-                                {{ $quiz->subject->name ?? 'N/A' }}
-                            </td>
-                            <td class="px-6 py-4 text-sm text-slate-600">
-                                {{ optional($quiz->starts_at)->format('d M Y H:i') ?? 'N/A' }}
-                            </td>
-                            <td class="px-6 py-4 text-sm text-slate-600">
-                                {{ $quiz->ends_at->format('d M Y H:i') }}
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 text-xs font-medium rounded-full {{ $quiz->is_published ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800' }}">
-                                    {{ $quiz->is_published ? 'Published' : 'Draft' }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-right space-x-2">
-                                <a href="{{ route('teacher.quizzes.edit', $quiz) }}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Edit</a>
-                                <a href="{{ route('teacher.quizzes.results', $quiz) }}" class="text-sm text-slate-600 hover:text-slate-800 font-medium">Results</a>
-                                @unless($quiz->is_published)
-                                    <form action="{{ route('teacher.quizzes.publish', $quiz) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" class="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
-                                            Publish
-                                        </button>
-                                    </form>
-                                @endunless
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="px-6 py-10 text-center text-slate-500 text-sm">
-                                No quizzes created yet.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-            @if ($quizzes->hasPages())
-                <div class="px-6 py-4 border-t border-slate-200">
-                    {{ $quizzes->links() }}
+        @if ($errors->any())
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{{ $errors->first() }}</div>
+        @endif
+
+        <div class="space-y-6">
+            @forelse ($quizzes as $quiz)
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                    <div class="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                            <h2 class="font-semibold text-slate-900">{{ $quiz->title }}</h2>
+                            <p class="text-sm text-slate-500 mt-1">{{ $quiz->subject->schoolClass->name }} — {{ $quiz->subject->name }}</p>
+                            <p class="text-xs text-slate-500 mt-2">Starts {{ $quiz->starts_at->format('d M Y H:i') }} · Deadline {{ $quiz->deadline->format('d M Y H:i') }}</p>
+                            <span class="inline-block mt-2 px-2 py-0.5 rounded-full text-xs font-medium {{ $quiz->published ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600' }}">
+                                {{ $quiz->published ? 'Published' : 'Draft' }}
+                            </span>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            @if (! $quiz->published)
+                                <form method="POST" action="{{ route('teacher.qams.quizzes.publish', $quiz) }}">
+                                    @csrf
+                                    <button type="submit" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">Publish</button>
+                                </form>
+                            @endif
+                            <form method="POST" action="{{ route('teacher.qams.quizzes.extend', $quiz) }}" class="flex flex-wrap items-end gap-2">
+                                @csrf
+                                <div>
+                                    <label class="block text-[10px] uppercase text-slate-500 mb-0.5">New deadline</label>
+                                    <input type="datetime-local" name="deadline" required class="px-2 py-1.5 border border-slate-300 rounded-lg text-xs">
+                                </div>
+                                <button type="submit" class="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium hover:bg-slate-50">Extend</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
-            @endif
+            @empty
+                <p class="text-sm text-slate-500">No quizzes yet.</p>
+            @endforelse
         </div>
+        <div class="mt-6">{{ $quizzes->links() }}</div>
     </main>
 </div>
 @endsection
-

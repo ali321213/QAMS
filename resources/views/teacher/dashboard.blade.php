@@ -41,7 +41,23 @@
             </div>
         @endif
 
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <a href="{{ route('teacher.question-bank.index') }}"
+               class="group relative overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-200 hover:border-violet-300/80 hover:shadow-md transition">
+                <div class="h-full px-5 py-5 flex flex-col justify-between">
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-violet-500">Question bank</p>
+                        <h2 class="mt-1 text-lg font-semibold text-slate-900">MCQ pool</h2>
+                        <p class="mt-1 text-xs text-slate-500">Build reusable questions for quizzes.</p>
+                    </div>
+                    <span class="mt-4 inline-flex items-center text-[11px] font-medium text-violet-600 group-hover:translate-x-0.5 transition">
+                        Open bank
+                        <svg class="ml-1 h-3 w-3" viewBox="0 0 16 16" fill="none">
+                            <path d="M6 3l4 5-4 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                </div>
+            </a>
             <a href="{{ route('teacher.quizzes.index') }}"
                class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 p-[1px] shadow-sm hover:shadow-md transition">
                 <div class="h-full rounded-2xl bg-slate-950/5 px-5 py-5 flex flex-col justify-between">
@@ -84,18 +100,18 @@
                     </div>
                 </div>
             </a>
-            <a href="{{ route('dashboard') }}"
-               class="group relative overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-200 hover:border-slate-300 hover:shadow-md transition">
+            <a href="{{ route('teacher.reports.performance') }}"
+               class="group relative overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-200 hover:border-emerald-300/80 hover:shadow-md transition">
                 <div class="h-full px-5 py-5 flex flex-col justify-between">
                     <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Switch role</p>
-                        <h2 class="mt-1 text-lg font-semibold text-slate-900">Main dashboard</h2>
+                        <p class="text-xs font-medium uppercase tracking-wide text-emerald-500">Reports</p>
+                        <h2 class="mt-1 text-lg font-semibold text-slate-900">Performance</h2>
                         <p class="mt-1 text-xs text-slate-500">
-                            Return to the central dashboard and choose a different role.
+                            Class averages for quizzes and assignments.
                         </p>
                     </div>
-                    <span class="mt-4 inline-flex items-center text-[11px] font-medium text-slate-700 group-hover:translate-x-0.5 transition">
-                        Go to main dashboard
+                    <span class="mt-4 inline-flex items-center text-[11px] font-medium text-emerald-600 group-hover:translate-x-0.5 transition">
+                        View report
                         <svg class="ml-1 h-3 w-3" viewBox="0 0 16 16" fill="none">
                             <path d="M6 3l4 5-4 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>

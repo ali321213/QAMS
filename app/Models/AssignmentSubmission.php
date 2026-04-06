@@ -2,15 +2,6 @@
 
 namespace App\Models;
 
-<<<<<<< Updated upstream
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-
-class AssignmentSubmission extends Model
-{
-    use HasFactory;
-
-=======
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,24 +9,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class AssignmentSubmission extends Model
 {
->>>>>>> Stashed changes
     protected $fillable = [
         'assignment_id',
         'student_id',
         'file_path',
         'submitted_at',
         'marks',
-<<<<<<< Updated upstream
-        'feedback',
-        'status',
-    ];
-
-    protected $casts = [
-        'submitted_at' => 'datetime',
-    ];
-
-    public function assignment()
-=======
         'graded_by',
         'status',
         'feedback',
@@ -47,19 +26,10 @@ class AssignmentSubmission extends Model
     }
 
     public function assignment(): BelongsTo
->>>>>>> Stashed changes
     {
         return $this->belongsTo(Assignment::class);
     }
 
-<<<<<<< Updated upstream
-    public function student()
-    {
-        return $this->belongsTo(Student::class);
-    }
-}
-
-=======
     public function student(): BelongsTo
     {
         return $this->belongsTo(User::class, 'student_id');
@@ -86,4 +56,3 @@ class AssignmentSubmission extends Model
             ->update(['marks' => 0, 'status' => 'auto_zero']);
     }
 }
->>>>>>> Stashed changes

@@ -42,6 +42,16 @@
             </div>
         @endif
 
+        <div class="mb-6 rounded-2xl border border-blue-200 bg-blue-50/80 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+                <h2 class="text-sm font-semibold text-slate-900">QAMS data management</h2>
+                <p class="text-xs text-slate-600 mt-1">Classes, subjects, teacher assignment, student registration, and reports.</p>
+            </div>
+            <a href="{{ route('admin.qams.hub') }}" class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                Open QAMS admin
+            </a>
+        </div>
+
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-6 border-b border-slate-200">
                 <h2 class="text-base font-semibold text-slate-900">User management</h2>

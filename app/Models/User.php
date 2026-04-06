@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,7 +14,13 @@ class User extends Authenticatable
 
     protected $table = 'users';
 
-    protected $fillable = ['name', 'user_name', 'password', 'role', 'active'];
+    protected $fillable = [
+        'name',
+        'user_name',
+        'password',
+        'role',
+        'active',
+    ];
 
     protected $hidden = ['password'];
 
@@ -37,16 +44,6 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
-<<<<<<< Updated upstream
-    public function teacher()
-    {
-        return $this->hasOne(Teacher::class);
-    }
-
-    public function student()
-    {
-        return $this->hasOne(Student::class);
-=======
     public function isTeacher(): bool
     {
         return $this->role === 'teacher';
@@ -85,6 +82,5 @@ class User extends Authenticatable
     public function createdAssignments(): HasMany
     {
         return $this->hasMany(Assignment::class, 'teacher_id');
->>>>>>> Stashed changes
     }
 }

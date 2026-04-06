@@ -80,7 +80,7 @@
                     </span>
                 </div>
             </a>
-            <a href="{{ route('student.reports.performance') }}"
+            <a href="{{ route('student.results') }}"
                class="group relative overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-200 hover:border-emerald-300/80 hover:shadow-md transition">
                 <div class="h-full px-5 py-5 flex flex-col justify-between">
                     <div>
@@ -91,7 +91,7 @@
                         </p>
                     </div>
                     <span class="mt-4 inline-flex items-center text-xs font-medium text-emerald-600 group-hover:translate-x-0.5 transition">
-                        View report
+                        View results
                         <svg class="ml-1 h-3 w-3" viewBox="0 0 16 16" fill="none">
                             <path d="M6 3l4 5-4 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
@@ -113,7 +113,7 @@
                         <div>
                             <p class="text-sm font-medium text-slate-900">{{ $quiz->title }}</p>
                             <p class="text-[11px] text-slate-500 mt-0.5">
-                                {{ $quiz->subject->name ?? '' }} • Ends {{ $quiz->ends_at->format('d M Y H:i') }}
+                                {{ $quiz->subject->name ?? '' }} • Deadline {{ $quiz->deadline->format('d M Y H:i') }}
                             </p>
                         </div>
                         <span class="mt-0.5 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
@@ -136,7 +136,7 @@
                         <div>
                             <p class="text-sm font-medium text-slate-900">{{ $assignment->title }}</p>
                             <p class="text-[11px] text-slate-500 mt-0.5">
-                                {{ $assignment->subject->name ?? '' }} • Due {{ $assignment->effectiveDeadline()->format('d M Y H:i') }}
+                                {{ $assignment->subject->name ?? '' }} • Due {{ $assignment->deadline->format('d M Y H:i') }}
                             </p>
                         </div>
                         <span class="mt-0.5 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">

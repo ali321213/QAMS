@@ -2,203 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\RespondsWithJsonOrRedirect;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
-<<<<<<< Updated upstream
-use App\Models\Quiz;
-use App\Models\QuizAnswer;
-use App\Models\QuizAttempt;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-
-class StudentController extends Controller
-{
-    public function dashboard()
-    {
-        $student = Auth::user()->load('student');
-
-        $upcomingQuizzes = Quiz::where('is_published', true)
-            ->whereHas('subject', function ($q) use ($student) {
-                $q->where('class_id', $student->student->class_id ?? null);
-            })
-            ->where('ends_at', '>=', now())
-            ->orderBy('starts_at')
-            ->take(5)
-            ->get();
-
-        $pendingAssignments = Assignment::whereHas('subject', function ($q) use ($student) {
-            $q->where('class_id', $student->student->class_id ?? null);
-        })
-            ->where(function ($q) {
-                $q->whereNull('extended_deadline_at')
-                    ->where('deadline_at', '>=', now())
-                    ->orWhere('extended_deadline_at', '>=', now());
-            })
-            ->orderBy('deadline_at')
-            ->take(5)
-            ->get();
-
-        return view('student.dashboard', compact('student', 'upcomingQuizzes', 'pendingAssignments'));
-    }
-
-    public function listQuizzes()
-    {
-        $student = Auth::user()->student;
-
-        $quizzes = Quiz::with('subject')
-            ->where('is_published', true)
-            ->whereHas('subject', function ($q) use ($student) {
-                $q->where('class_id', $student->class_id);
-            })
-            ->orderBy('starts_at')
-            ->paginate(10);
-
-        $attempts = QuizAttempt::where('student_id', $student->id)->get()->keyBy('quiz_id');
-
-        return view('student.quizzes.index', compact('quizzes', 'attempts'));
-    }
-
-    public function showQuiz(Quiz $quiz)
-    {
-        // Backwards compatibility: redirect to first question view
-        return redirect()->route('student.quizzes.question.show', ['quiz' => $quiz->id, 'index' => 0]);
-    }
-
-    public function startQuiz(Quiz $quiz)
-    {
-        $student = Auth::user()->student;
-        $this->ensureQuizAccessible($quiz, $student->class_id);
-
-        QuizAttempt::firstOrCreate(
-            ['quiz_id' => $quiz->id, 'student_id' => $student->id],
-            ['started_at' => now(), 'status' => 'in_progress']
-        );
-
-        return redirect()->route('student.quizzes.question.show', ['quiz' => $quiz->id, 'index' => 0]);
-    }
-
-    public function showQuizQuestion(Quiz $quiz, int $index)
-    {
-        $student = Auth::user()->student;
-        $this->ensureQuizAccessible($quiz, $student->class_id);
-
-        $questions = $quiz->questions()->orderBy('id')->get();
-        $totalQuestions = $questions->count();
-
-        abort_if($totalQuestions === 0 || $index < 0 || $index >= $totalQuestions, 404);
-
-        $question = $questions[$index];
-
-        $attempt = QuizAttempt::firstOrCreate(
-            ['quiz_id' => $quiz->id, 'student_id' => $student->id],
-            ['started_at' => now(), 'status' => 'in_progress']
-        );
-
-        if ($attempt->status === 'submitted') {
-            return redirect()->route('student.quizzes.index')
-                ->withErrors(['error' => 'You have already submitted this quiz.']);
-        }
-
-        return view('student.quizzes.show', [
-            'quiz' => $quiz,
-            'question' => $question,
-            'attempt' => $attempt,
-            'index' => $index,
-            'totalQuestions' => $totalQuestions,
-            'secondsPerQuestion' => 60,
-        ]);
-    }
-
-    public function answerQuizQuestion(Request $request, Quiz $quiz, int $index)
-    {
-        $student = Auth::user()->student;
-        $this->ensureQuizAccessible($quiz, $student->class_id);
-
-        $questions = $quiz->questions()->orderBy('id')->get();
-        $totalQuestions = $questions->count();
-
-        abort_if($totalQuestions === 0 || $index < 0 || $index >= $totalQuestions, 404);
-
-        $question = $questions[$index];
-
-        $attempt = QuizAttempt::firstOrCreate(
-            ['quiz_id' => $quiz->id, 'student_id' => $student->id],
-            ['started_at' => now(), 'status' => 'in_progress']
-        );
-
-        if ($attempt->status === 'submitted') {
-            return redirect()->route('student.quizzes.index')
-                ->withErrors(['error' => 'You have already submitted this quiz.']);
-        }
-
-        $selected = $request->input('selected_option');
-        if (! in_array($selected, ['a', 'b', 'c', 'd'], true)) {
-            $selected = null;
-        }
-
-        $isCorrect = $selected !== null && $selected === $question->correct_option;
-        $earned = $isCorrect ? $question->marks : 0;
-
-        QuizAnswer::updateOrCreate(
-            [
-                'quiz_attempt_id' => $attempt->id,
-                'question_id' => $question->id,
-            ],
-            [
-                'selected_option' => $selected,
-                'is_correct' => $isCorrect,
-                'earned_marks' => $earned,
-            ]
-        );
-
-        // Recalculate total score from all answered questions
-        $totalScore = QuizAnswer::where('quiz_attempt_id', $attempt->id)->sum('earned_marks');
-        $attempt->total_score = $totalScore;
-
-        $nextIndex = $index + 1;
-
-        if ($nextIndex >= $totalQuestions) {
-            $attempt->submitted_at = now();
-            $attempt->status = 'submitted';
-            $attempt->save();
-
-            return redirect()->route('student.quizzes.index')
-                ->with('success', 'Quiz submitted. Your score: '.$totalScore);
-        }
-
-        $attempt->save();
-
-        return redirect()->route('student.quizzes.question.show', ['quiz' => $quiz->id, 'index' => $nextIndex]);
-    }
-
-    public function listAssignments()
-    {
-        $student = Auth::user()->student;
-
-        $assignments = Assignment::with('subject')
-            ->whereHas('subject', function ($q) use ($student) {
-                $q->where('class_id', $student->class_id);
-            })
-            ->orderByDesc('assigned_at')
-            ->paginate(10);
-
-        $submissions = AssignmentSubmission::where('student_id', $student->id)->get()->keyBy('assignment_id');
-
-        return view('student.assignments.index', compact('assignments', 'submissions'));
-    }
-
-    public function showAssignment(Assignment $assignment)
-    {
-        $student = Auth::user()->student;
-        $this->ensureAssignmentAccessible($assignment, $student->class_id);
-
-        $submission = AssignmentSubmission::where('assignment_id', $assignment->id)
-            ->where('student_id', $student->id)
-            ->first();
-
-        return view('student.assignments.show', compact('assignment', 'submission'));
-=======
 use App\Models\QuestionBankItem;
 use App\Models\Quiz;
 use App\Models\QuizAnswer;
@@ -209,10 +15,109 @@ use Illuminate\Support\Facades\DB;
 
 class StudentController extends Controller
 {
+    use RespondsWithJsonOrRedirect;
+
+    public function dashboard()
+    {
+        $subjectIds = auth()->user()->enrolledSubjects()->pluck('id');
+
+        $upcomingQuizzes = Quiz::query()
+            ->where('published', true)
+            ->whereIn('subject_id', $subjectIds)
+            ->where('deadline', '>=', now())
+            ->with('subject')
+            ->orderBy('deadline')
+            ->take(5)
+            ->get();
+
+        $pendingAssignments = Assignment::query()
+            ->where('published', true)
+            ->whereIn('subject_id', $subjectIds)
+            ->where('deadline', '>=', now())
+            ->whereHas('submissions', function ($q) {
+                $q->where('student_id', auth()->id())->where('status', 'pending');
+            })
+            ->with('subject')
+            ->orderBy('deadline')
+            ->take(5)
+            ->get();
+
+        return view('student.dashboard', compact('upcomingQuizzes', 'pendingAssignments'));
+    }
+
+    public function quizzesIndex()
+    {
+        $subjectIds = auth()->user()->enrolledSubjects()->pluck('id');
+        $quizzes = Quiz::query()
+            ->where('published', true)
+            ->whereIn('subject_id', $subjectIds)
+            ->with('subject.schoolClass')
+            ->orderByDesc('deadline')
+            ->paginate(15);
+        $attempts = QuizAttempt::where('student_id', auth()->id())->get()->keyBy('quiz_id');
+
+        return view('student.quizzes.index', compact('quizzes', 'attempts'));
+    }
+
+    public function quizAttemptForm(Quiz $quiz)
+    {
+        abort_unless($quiz->published, 403);
+        abort_unless($quiz->subject->students()->whereKey(auth()->id())->exists(), 403);
+        abort_if(Carbon::now()->greaterThan($quiz->deadline), 403);
+        abort_if(QuizAttempt::where('quiz_id', $quiz->id)->where('student_id', auth()->id())->exists(), 403);
+
+        $questions = QuestionBankItem::where('subject_id', $quiz->subject_id)->orderBy('id')->get();
+        $quiz->load('subject.schoolClass');
+
+        return view('student.quizzes.attempt', compact('quiz', 'questions'));
+    }
+
+    public function assignmentsIndex()
+    {
+        $subjectIds = auth()->user()->enrolledSubjects()->pluck('id');
+        $assignments = Assignment::query()
+            ->where('published', true)
+            ->whereIn('subject_id', $subjectIds)
+            ->with('subject.schoolClass')
+            ->orderByDesc('deadline')
+            ->paginate(15);
+        $submissions = AssignmentSubmission::where('student_id', auth()->id())->get()->keyBy('assignment_id');
+
+        return view('student.assignments.index', compact('assignments', 'submissions'));
+    }
+
+    public function assignmentShow(Assignment $assignment)
+    {
+        abort_unless($assignment->published, 403);
+        abort_unless($assignment->subject->students()->whereKey(auth()->id())->exists(), 403);
+
+        $submission = AssignmentSubmission::firstOrCreate(
+            ['assignment_id' => $assignment->id, 'student_id' => auth()->id()],
+            ['status' => 'pending', 'marks' => 0]
+        );
+        $assignment->load('subject.schoolClass');
+
+        return view('student.assignments.show', compact('assignment', 'submission'));
+    }
+
     public function attemptQuiz(Request $request, Quiz $quiz)
     {
         abort_unless($quiz->published, 403);
         abort_unless($quiz->subject->students()->whereKey(auth()->id())->exists(), 403);
+
+        if (! $this->wantsApiResponse($request)) {
+            $raw = $request->input('answers', []);
+            $answers = [];
+            foreach ($raw as $questionId => $selected) {
+                if ($selected !== null && $selected !== '') {
+                    $answers[] = [
+                        'question_id' => (int) $questionId,
+                        'selected_option' => strtoupper((string) $selected),
+                    ];
+                }
+            }
+            $request->merge(['answers' => $answers]);
+        }
 
         $validated = $request->validate([
             'answers' => ['required', 'array', 'min:1'],
@@ -222,7 +127,7 @@ class StudentController extends Controller
 
         abort_if(Carbon::now()->greaterThan($quiz->deadline), 422, 'Quiz deadline has passed.');
 
-        return DB::transaction(function () use ($validated, $quiz) {
+        return DB::transaction(function () use ($validated, $quiz, $request) {
             abort_if(QuizAttempt::where('quiz_id', $quiz->id)->where('student_id', auth()->id())->exists(), 422, 'Quiz already attempted.');
 
             $questionIds = collect($validated['answers'])->pluck('question_id')->unique()->values();
@@ -259,112 +164,73 @@ class StudentController extends Controller
 
             $attempt->update(['score' => $score]);
 
-            return response()->json(['attempt_id' => $attempt->id, 'score' => $score], 201);
+            if ($this->wantsApiResponse($request)) {
+                return response()->json(['attempt_id' => $attempt->id, 'score' => $score], 201);
+            }
+
+            return redirect()->route('student.quizzes.index')->with('success', "Quiz submitted. Score: {$score} / {$attempt->total_questions}.");
         });
->>>>>>> Stashed changes
     }
 
     public function submitAssignment(Request $request, Assignment $assignment)
     {
-<<<<<<< Updated upstream
-        $student = Auth::user()->student;
-        $this->ensureAssignmentAccessible($assignment, $student->class_id);
-
-        $request->validate([
-            'file' => ['required', 'file', 'max:10240'],
-        ]);
-
-        $filePath = $request->file('file')->store('assignments', 'public');
-
-        $submission = AssignmentSubmission::updateOrCreate(
-            [
-                'assignment_id' => $assignment->id,
-                'student_id' => $student->id,
-            ],
-            [
-                'file_path' => $filePath,
-                'submitted_at' => now(),
-                'status' => 'submitted',
-            ]
-        );
-
-        return redirect()->route('student.assignments.show', $assignment)->with('success', 'Assignment submitted successfully.');
-    }
-
-    public function performanceReport()
-    {
-        $student = Auth::user()->student;
-
-        $quizAttempts = QuizAttempt::with('quiz.subject')
-            ->where('student_id', $student->id)
-            ->orderByDesc('created_at')
-            ->get();
-
-        $assignmentSubmissions = AssignmentSubmission::with('assignment.subject')
-            ->where('student_id', $student->id)
-            ->orderByDesc('created_at')
-            ->get();
-
-        return view('student.reports.performance', compact('student', 'quizAttempts', 'assignmentSubmissions'));
-    }
-
-    protected function ensureQuizAccessible(Quiz $quiz, int $classId): void
-    {
-        abort_unless(
-            $quiz->is_published &&
-            $quiz->subject &&
-            (int) $quiz->subject->class_id === $classId &&
-            $quiz->ends_at >= now(),
-            403
-        );
-    }
-
-    protected function ensureAssignmentAccessible(Assignment $assignment, int $classId): void
-    {
-        abort_unless(
-            $assignment->subject &&
-            (int) $assignment->subject->class_id === $classId,
-            403
-        );
-    }
-}
-
-=======
         abort_unless($assignment->published, 403);
         abort_unless($assignment->subject->students()->whereKey(auth()->id())->exists(), 403);
 
-        $validated = $request->validate([
-            'file_path' => ['required', 'string', 'max:255'],
-        ]);
+        $filePath = null;
+        if ($request->hasFile('file')) {
+            $request->validate(['file' => ['required', 'file', 'max:10240']]);
+            $filePath = $request->file('file')->store('assignment_submissions', 'public');
+        } else {
+            $request->validate(['file_path' => ['required', 'string', 'max:255']]);
+            $filePath = $request->input('file_path');
+        }
 
         $isLate = Carbon::now()->greaterThan($assignment->deadline);
 
         $submission = AssignmentSubmission::updateOrCreate(
             ['assignment_id' => $assignment->id, 'student_id' => auth()->id()],
             [
-                'file_path' => $validated['file_path'],
+                'file_path' => $filePath,
                 'submitted_at' => Carbon::now(),
-                'marks' => $isLate ? 0 : 0,
+                'marks' => 0,
                 'status' => $isLate ? 'auto_zero' : 'pending',
                 'feedback' => $isLate ? 'Auto-zero: submitted after deadline.' : null,
             ]
         );
 
-        return response()->json($submission, 201);
+        if ($this->wantsApiResponse($request)) {
+            return response()->json($submission, 201);
+        }
+
+        return redirect()->route('student.assignments.show', $assignment)->with('success', 'Assignment submitted.');
     }
 
-    public function myResults()
+    public function myResults(Request $request)
     {
         AssignmentSubmission::applyAutoZeroMarks();
 
         $studentId = auth()->id();
 
-        return response()->json([
-            'quiz_results' => QuizAttempt::where('student_id', $studentId)
-                ->get(['quiz_id', 'score', 'total_questions', 'submitted_at']),
-            'assignment_results' => AssignmentSubmission::where('student_id', $studentId)
-                ->get(['assignment_id', 'marks', 'status', 'feedback', 'submitted_at']),
-        ]);
+        $quizResults = QuizAttempt::with('quiz.subject')
+            ->where('student_id', $studentId)
+            ->orderByDesc('submitted_at')
+            ->get();
+
+        $assignmentResults = AssignmentSubmission::with('assignment.subject')
+            ->where('student_id', $studentId)
+            ->orderByDesc('updated_at')
+            ->get();
+
+        if ($this->wantsApiResponse($request)) {
+            return response()->json([
+                'quiz_results' => QuizAttempt::where('student_id', $studentId)
+                    ->get(['quiz_id', 'score', 'total_questions', 'submitted_at']),
+                'assignment_results' => AssignmentSubmission::where('student_id', $studentId)
+                    ->get(['assignment_id', 'marks', 'status', 'feedback', 'submitted_at']),
+            ]);
+        }
+
+        return view('student.results', compact('quizResults', 'assignmentResults'));
     }
 }
->>>>>>> Stashed changes

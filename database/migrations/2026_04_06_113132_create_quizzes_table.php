@@ -13,8 +13,8 @@ return new class extends Migration
             $table->foreignId('subject_id')->constrained('subjects')->cascadeOnDelete();
             $table->foreignId('teacher_id')->constrained('users')->cascadeOnDelete();
             $table->string('title');
-            $table->timestamp('starts_at');
-            $table->timestamp('deadline');
+            $table->dateTime('starts_at');
+            $table->dateTime('deadline');
             $table->boolean('published')->default(false);
             $table->timestamps();
         });
