@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Middleware;
+use App\Models\AssignmentSubmission;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,11 @@ class EnsureUserIsActive
                 'user_name' => 'Your account has been blocked. Please contact the administrator.',
             ]);
         }
+
+        if (Auth::check()) {
+            AssignmentSubmission::applyAutoZeroMarks();
+        }
+
         return $next($request);
     }
 }

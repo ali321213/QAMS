@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+<<<<<<< Updated upstream
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -24,3 +25,17 @@ class SchoolClass extends Model
     }
 }
 
+=======
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
+
+class SchoolClass extends Model
+{
+    protected $fillable = ['name'];
+
+    public function subjects(): HasMany
+    {
+        return $this->hasMany(Subject::class);
+    }
+}
+>>>>>>> Stashed changes

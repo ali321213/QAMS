@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+<<<<<<< Updated upstream
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -29,10 +30,30 @@ class Assignment extends Model
     ];
 
     public function subject()
+=======
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
+
+class Assignment extends Model
+{
+    protected $fillable = ['subject_id', 'teacher_id', 'title', 'description', 'deadline', 'published'];
+
+    protected function casts(): array
+    {
+        return [
+            'deadline' => 'datetime',
+            'published' => 'boolean',
+        ];
+    }
+
+    public function subject(): BelongsTo
+>>>>>>> Stashed changes
     {
         return $this->belongsTo(Subject::class);
     }
 
+<<<<<<< Updated upstream
     public function teacher()
     {
         return $this->belongsTo(Teacher::class);
@@ -49,3 +70,15 @@ class Assignment extends Model
     }
 }
 
+=======
+    public function teacher(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'teacher_id');
+    }
+
+    public function submissions(): HasMany
+    {
+        return $this->hasMany(AssignmentSubmission::class);
+    }
+}
+>>>>>>> Stashed changes

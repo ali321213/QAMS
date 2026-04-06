@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
+<<<<<<< Updated upstream
 use App\Models\Quiz;
 use App\Models\QuizAnswer;
 use App\Models\QuizAttempt;
@@ -197,10 +198,75 @@ class StudentController extends Controller
             ->first();
 
         return view('student.assignments.show', compact('assignment', 'submission'));
+=======
+use App\Models\QuestionBankItem;
+use App\Models\Quiz;
+use App\Models\QuizAnswer;
+use App\Models\QuizAttempt;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class StudentController extends Controller
+{
+    public function attemptQuiz(Request $request, Quiz $quiz)
+    {
+        abort_unless($quiz->published, 403);
+        abort_unless($quiz->subject->students()->whereKey(auth()->id())->exists(), 403);
+
+        $validated = $request->validate([
+            'answers' => ['required', 'array', 'min:1'],
+            'answers.*.question_id' => ['required', 'exists:question_bank_items,id'],
+            'answers.*.selected_option' => ['required', 'in:A,B,C,D'],
+        ]);
+
+        abort_if(Carbon::now()->greaterThan($quiz->deadline), 422, 'Quiz deadline has passed.');
+
+        return DB::transaction(function () use ($validated, $quiz) {
+            abort_if(QuizAttempt::where('quiz_id', $quiz->id)->where('student_id', auth()->id())->exists(), 422, 'Quiz already attempted.');
+
+            $questionIds = collect($validated['answers'])->pluck('question_id')->unique()->values();
+            $questions = QuestionBankItem::whereIn('id', $questionIds)
+                ->where('subject_id', $quiz->subject_id)
+                ->get()
+                ->keyBy('id');
+
+            abort_if($questions->count() !== $questionIds->count(), 422, 'Invalid questions for this quiz.');
+
+            $score = 0;
+            $attempt = QuizAttempt::create([
+                'quiz_id' => $quiz->id,
+                'student_id' => auth()->id(),
+                'score' => 0,
+                'total_questions' => $questionIds->count(),
+                'submitted_at' => Carbon::now(),
+            ]);
+
+            foreach ($validated['answers'] as $answer) {
+                $question = $questions[(int) $answer['question_id']];
+                $isCorrect = $question->correct_option === $answer['selected_option'];
+                if ($isCorrect) {
+                    $score++;
+                }
+
+                QuizAnswer::create([
+                    'quiz_attempt_id' => $attempt->id,
+                    'question_bank_item_id' => $question->id,
+                    'selected_option' => $answer['selected_option'],
+                    'is_correct' => $isCorrect,
+                ]);
+            }
+
+            $attempt->update(['score' => $score]);
+
+            return response()->json(['attempt_id' => $attempt->id, 'score' => $score], 201);
+        });
+>>>>>>> Stashed changes
     }
 
     public function submitAssignment(Request $request, Assignment $assignment)
     {
+<<<<<<< Updated upstream
         $student = Auth::user()->student;
         $this->ensureAssignmentAccessible($assignment, $student->class_id);
 
@@ -263,3 +329,42 @@ class StudentController extends Controller
     }
 }
 
+=======
+        abort_unless($assignment->published, 403);
+        abort_unless($assignment->subject->students()->whereKey(auth()->id())->exists(), 403);
+
+        $validated = $request->validate([
+            'file_path' => ['required', 'string', 'max:255'],
+        ]);
+
+        $isLate = Carbon::now()->greaterThan($assignment->deadline);
+
+        $submission = AssignmentSubmission::updateOrCreate(
+            ['assignment_id' => $assignment->id, 'student_id' => auth()->id()],
+            [
+                'file_path' => $validated['file_path'],
+                'submitted_at' => Carbon::now(),
+                'marks' => $isLate ? 0 : 0,
+                'status' => $isLate ? 'auto_zero' : 'pending',
+                'feedback' => $isLate ? 'Auto-zero: submitted after deadline.' : null,
+            ]
+        );
+
+        return response()->json($submission, 201);
+    }
+
+    public function myResults()
+    {
+        AssignmentSubmission::applyAutoZeroMarks();
+
+        $studentId = auth()->id();
+
+        return response()->json([
+            'quiz_results' => QuizAttempt::where('student_id', $studentId)
+                ->get(['quiz_id', 'score', 'total_questions', 'submitted_at']),
+            'assignment_results' => AssignmentSubmission::where('student_id', $studentId)
+                ->get(['assignment_id', 'marks', 'status', 'feedback', 'submitted_at']),
+        ]);
+    }
+}
+>>>>>>> Stashed changes
