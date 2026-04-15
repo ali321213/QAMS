@@ -31,7 +31,7 @@
                         <div class="space-y-2">
                             @foreach (['A' => $q->option_a, 'B' => $q->option_b, 'C' => $q->option_c, 'D' => $q->option_d] as $letter => $text)
                                 <label class="flex items-start gap-3 p-3 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer">
-                                    <input type="radio" name="answers[{{ $q->id }}]" value="{{ $letter }}" class="mt-1" {{ old('answers.'.$q->id') === $letter ? 'checked' : '' }}>
+                                    <input type="radio" name="answers[{{ $q->id }}]" value="{{ $letter }}" class="mt-1" {{ old('answers.'.$q->id) === $letter ? 'checked' : '' }}>
                                     <span class="text-sm text-slate-700"><span class="font-semibold text-slate-900">{{ $letter }}.</span> {{ $text }}</span>
                                 </label>
                             @endforeach

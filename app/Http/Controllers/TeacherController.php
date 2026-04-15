@@ -84,7 +84,7 @@ class TeacherController extends Controller
     {
         AssignmentSubmission::applyAutoZeroMarks();
         $subjects = auth()->user()->assignedSubjects()->with('schoolClass')->orderBy('name')->get();
-        $subjectId = (int) $request->query('subject_id', $subjects->first()->id ?? 0);
+        $subjectId = (int) $request->query('subject_id', $subjects->first()?->id ?? 0);
         $report = null;
 
         if ($subjectId && $subjects->contains('id', $subjectId)) {

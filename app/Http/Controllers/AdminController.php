@@ -15,7 +15,7 @@ class AdminController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('user_name', 'like', "%{$search}%");
-            })->where('role', 'student');
+            });
         }
         $users = $query->paginate(15);
         return view('admin.dashboard', compact('users'));
