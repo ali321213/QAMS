@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Http\Controllers\Concerns\RespondsWithJsonOrRedirect;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;

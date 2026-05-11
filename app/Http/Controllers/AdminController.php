@@ -21,13 +21,13 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('users'));
     }
 
-    // Show the form for editing the specified user.
+    // Form for editing the specified user
     public function edit(User $user)
     {
         return view('admin.edit', compact('user'));
     }
 
-    // Update the specified user.
+    // Update specified user.
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
@@ -46,7 +46,7 @@ class AdminController extends Controller
         return redirect()->route('admin.dashboard')->with('success', 'User updated successfully.');
     }
 
-    // Toggle block/unblock status of the specified user.
+    // Toggle block/unblock status of the selected user
     public function toggleBlock(User $user)
     {
         if ($user->id === auth()->id()) {

@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\RespondsWithJsonOrRedirect;
-use App\Models\SchoolClass;
-use App\Models\StudentProfile;
-use App\Models\Subject;
-use App\Models\TeacherProfile;
-use App\Models\User;
+use App\Models\{
+    SchoolClass,
+    StudentProfile,
+    Subject,
+    TeacherProfile,
+    User
+};
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class AdminManagementController extends Controller
 {
@@ -82,13 +86,21 @@ class AdminManagementController extends Controller
         if ($this->wantsApiResponse($request)) {
             return response()->json($class, 201);
         }
-
         return redirect()->route('admin.qams.classes.index')->with('success', 'Class created.');
     }
 
     public function updateClass(Request $request, SchoolClass $class)
     {
-        $validated = $request->validate(['name' => ['required', 'string', 'max:100', 'unique:school_classes,name,'.$class->id]]);
+        try {
+            $validated = $request->validate(['name' => ['required', 'string', 'max:100', 'unique:school_classes,name,' . $class->id]]);
+        } catch (ValidationException $e) {
+            if ($this->wantsApiResponse($request)) {
+                throw $e;
+            }
+            return redirect()->route('admin.qams.classes.index', ['edit_class' => $class->id])
+                ->withErrors($e->errors())
+                ->withInput();
+        }
         $class->update($validated);
         if ($this->wantsApiResponse($request)) {
             return response()->json($class);
@@ -98,11 +110,45 @@ class AdminManagementController extends Controller
 
     public function storeSubject(Request $request)
     {
-        $validated = $request->validate([
-            'school_class_id' => ['required', 'exists:school_classes,id'],
-            'name' => ['required', 'string', 'max:100'],
-        ]);
-        $subject = Subject::create($validated);
+        $duplicateMessage = ['name.unique' => 'This class already has a subject with that name.'];
+        $addDuplicateMessage = ['add_name.unique' => 'This class already has a subject with that name.'];
+
+        if ($request->has('add_name')) {
+            $validated = $request->validate(
+                [
+                    'add_school_class_id' => ['required', 'exists:school_classes,id'],
+                    'add_name' => [
+                        'required',
+                        'string',
+                        'max:100',
+                        Rule::unique('subjects', 'name')->where(
+                            fn($query) => $query->where('school_class_id', $request->integer('add_school_class_id'))
+                        ),
+                    ],
+                ],
+                $addDuplicateMessage
+            );
+            $subject = Subject::create([
+                'school_class_id' => $validated['add_school_class_id'],
+                'name' => $validated['add_name'],
+            ]);
+        } else {
+            $validated = $request->validate(
+                [
+                    'school_class_id' => ['required', 'exists:school_classes,id'],
+                    'name' => [
+                        'required',
+                        'string',
+                        'max:100',
+                        Rule::unique('subjects', 'name')->where(
+                            fn($query) => $query->where('school_class_id', $request->integer('school_class_id'))
+                        ),
+                    ],
+                ],
+                $duplicateMessage
+            );
+            $subject = Subject::create($validated);
+        }
         if ($this->wantsApiResponse($request)) {
             return response()->json($subject, 201);
         }
@@ -111,11 +157,62 @@ class AdminManagementController extends Controller
 
     public function updateSubject(Request $request, Subject $subject)
     {
-        $validated = $request->validate([
-            'school_class_id' => ['required', 'exists:school_classes,id'],
-            'name' => ['required', 'string', 'max:100'],
-        ]);
-        $subject->update($validated);
+        $nestedKey = "subject_fields.{$subject->id}";
+        $useNested = $request->has("{$nestedKey}.name");
+
+        try {
+            if ($useNested) {
+                $schoolClassId = $request->input("{$nestedKey}.school_class_id");
+                $validated = $request->validate(
+                    [
+                        "{$nestedKey}.school_class_id" => ['required', 'exists:school_classes,id'],
+                        "{$nestedKey}.name" => [
+                            'required',
+                            'string',
+                            'max:100',
+                            Rule::unique('subjects', 'name')
+                                ->ignore($subject->id)
+                                ->where(
+                                    fn($query) => $query->where('school_class_id', $schoolClassId)
+                                ),
+                        ],
+                    ],
+                    [
+                        "{$nestedKey}.name.unique" => 'This class already has a subject with that name.',
+                        'subject_fields.*.name.unique' => 'This class already has a subject with that name.',
+                    ]
+                );
+                $payload = $validated['subject_fields'][$subject->id];
+                $subject->update($payload);
+            } else {
+                $validated = $request->validate(
+                    [
+                        'school_class_id' => ['required', 'exists:school_classes,id'],
+                        'name' => [
+                            'required',
+                            'string',
+                            'max:100',
+                            Rule::unique('subjects', 'name')
+                                ->ignore($subject->id)
+                                ->where(
+                                    fn($query) => $query->where('school_class_id', $request->input('school_class_id'))
+                                ),
+                        ],
+                    ],
+                    [
+                        'name.unique' => 'This class already has a subject with that name.',
+                    ]
+                );
+                $subject->update($validated);
+            }
+        } catch (ValidationException $e) {
+            if ($this->wantsApiResponse($request)) {
+                throw $e;
+            }
+            return redirect()->route('admin.qams.subjects.index', ['edit_subject' => $subject->id])
+                ->withErrors($e->errors())
+                ->withInput();
+        }
         if ($this->wantsApiResponse($request)) {
             return response()->json($subject);
         }
@@ -200,9 +297,9 @@ class AdminManagementController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:30'],
-            'user_name' => ['required', 'string', 'max:30', 'unique:users,user_name,'.$student->id],
+            'user_name' => ['required', 'string', 'max:30', 'unique:users,user_name,' . $student->id],
             'password' => ['nullable', 'string', 'min:6'],
-            'admission_number' => ['required', 'string', 'max:100', 'unique:student_profiles,admission_number,'.$student->studentProfile->id],
+            'admission_number' => ['required', 'string', 'max:100', 'unique:student_profiles,admission_number,' . $student->studentProfile->id],
             'father_name' => ['required', 'string', 'max:100'],
             'picture' => ['nullable', 'image', 'max:2048'],
             'picture_path' => ['nullable', 'string', 'max:255'],
@@ -249,7 +346,7 @@ class AdminManagementController extends Controller
         abort_unless($teacher->isTeacher(), 404);
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:30'],
-            'user_name' => ['required', 'string', 'max:30', 'unique:users,user_name,'.$teacher->id],
+            'user_name' => ['required', 'string', 'max:30', 'unique:users,user_name,' . $teacher->id],
             'password' => ['nullable', 'string', 'min:6'],
             'job_history' => ['nullable', 'string'],
             'education' => ['nullable', 'string'],
