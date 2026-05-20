@@ -14,7 +14,6 @@
     </div>
     <main class="max-w-7xl mx-auto px-6 py-8">
         @include('admin.qams.partials.nav')
-
         <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm">
                 <p class="text-xs font-medium uppercase text-slate-500">Students</p>
